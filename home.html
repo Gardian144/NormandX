@@ -27,6 +27,16 @@
 <aside>
   <a onclick="filter('Hetero')">Hétéro</a>
   <a onclick="filter('MILF')">MILF</a>
+  <a onclick="filter('Teen')">Teen</a>
+  <a onclick="filter('Anal')">Anal</a>
+  <a onclick="filter('Lesbian')">Lesbian</a>
+  <a onclick="filter('Gays')">Gays</a>
+  <a onclick="filter('Amateur')">Amateur</a>
+  <a onclick="filter('Asian')">Asian</a>
+  <a onclick="filter('BBW')">BBW</a>
+  <a onclick="filter('Fetish')">Fetish</a>
+  <a onclick="filter('Hardcore')">Hardcore</a>
+  <a onclick="filter('Compilation')">Compilation</a>
 </aside>
 
 <main>
@@ -39,7 +49,7 @@ const user = localStorage.getItem("connected");
 if(!user) location.href="auth.html";
 
 function toggleMenu(){
-  menu.style.display = menu.style.display==="block"?"none":"block";
+  menu.style.display = menu.style.display==="block" ? "none" : "block";
 }
 function logout(){
   localStorage.removeItem("connected");
@@ -60,48 +70,59 @@ const videos = [
  }
 ];
 
+localStorage.setItem("videos", JSON.stringify(videos));
+
+/* ===== RENDER ===== */
 function render(list){
-  grid.innerHTML="";
+  grid.innerHTML = "";
+
+  const likes = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
+  const favs  = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+
   list.forEach(v=>{
-    grid.innerHTML+=`
+    grid.innerHTML += `
     <div class="card" onclick="openVideo(${v.id})">
+
       <div class="thumb"
         onmouseenter="previewStart(this)"
         onmouseleave="previewStop(this)">
-        
-        <video
-          preload="metadata"
-          muted
-          playsinline
-          poster="${v.poster}">
+
+        <img class="thumb-img" src="${v.poster}">
+
+        <video class="thumb-video" muted playsinline preload="none">
           <source src="${v.v}" type="video/mp4">
         </video>
 
-        ${v.hd?'<span class="badge">HD</span>':''}
+        ${v.hd ? '<span class="badge">HD</span>' : ''}
         <span class="duration">${v.d}</span>
         <div class="progress"><div></div></div>
       </div>
 
       <p>${v.t}</p>
+
       <div class="meta">
         <span>${v.views} vues</span>
         <span>${v.c}</span>
       </div>
 
       <div class="actions" onclick="event.stopPropagation()">
-        <button>👍</button>
-        <button>❤</button>
+        <button class="like ${likes.includes(v.id)?'active':''}"
+          onclick="like(${v.id},this)">👍</button>
+        <button class="fav ${favs.includes(v.id)?'active':''}"
+          onclick="fav(${v.id},this)">❤</button>
       </div>
+
     </div>`;
   });
 }
+
 render(videos);
 
-/* ===== PREVIEW LOGIC (PORNHUB) ===== */
+/* ===== PREVIEW (PORNHUB STYLE) ===== */
 let hoverTimer;
 
 function previewStart(el){
-  const video = el.querySelector("video");
+  const video = el.querySelector(".thumb-video");
   const bar = el.querySelector(".progress div");
 
   hoverTimer = setTimeout(()=>{
@@ -112,27 +133,55 @@ function previewStart(el){
       bar.style.width =
         (video.currentTime / video.duration * 100) + "%";
     };
-  }, 300); // DELAY PORNHUB
+  }, 300);
 }
 
 function previewStop(el){
   clearTimeout(hoverTimer);
-  const video = el.querySelector("video");
+  const video = el.querySelector(".thumb-video");
   const bar = el.querySelector(".progress div");
+
   video.pause();
   video.currentTime = 0;
   bar.style.width = "0%";
 }
 
+/* ===== OPEN VIDEO / HISTORY ===== */
 function openVideo(id){
+  let vids = JSON.parse(localStorage.getItem("videos"));
+  let v = vids.find(x=>x.id===id);
+  v.views++;
+  localStorage.setItem("videos", JSON.stringify(vids));
+
+  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+  h.unshift(id);
+  h = [...new Set(h)];
+  localStorage.setItem("history_"+user, JSON.stringify(h));
+
   location.href="video.html?id="+id;
 }
 
+/* ===== SEARCH / FILTER ===== */
 function search(q){
   render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
 }
 function filter(c){
   render(videos.filter(v=>v.c===c));
+}
+
+/* ===== LIKE / FAVORIS ===== */
+function like(id,btn){
+  let l = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
+  l.includes(id) ? l=l.filter(x=>x!==id) : l.push(id);
+  btn.classList.toggle("active");
+  localStorage.setItem("likes_"+user, JSON.stringify(l));
+}
+
+function fav(id,btn){
+  let f = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+  f.includes(id) ? f=f.filter(x=>x!==id) : f.push(id);
+  btn.classList.toggle("active");
+  localStorage.setItem("fav_"+user, JSON.stringify(f));
 }
 </script>
 
