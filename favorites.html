@@ -1,13 +1,29 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Favoris - NormandX</title>
+<title>Favoris</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<h1 style="margin-top:80px;text-align:center;">Mes Favoris</h1>
-
+<header>
+  <div class="logo" onclick="location.href='home.html'"><span>Normand</span><span>X</span></div>
+</header>
+<main>
+<div class="back" onclick="history.back()">← Retour</div>
+<div class="grid" id="grid"></div>
+</main>
+<script>
+const user=localStorage.getItem("connected");
+const fav=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
+const vids=JSON.parse(localStorage.getItem("videos"));
+fav.map(id=>vids.find(v=>v.id===id)).forEach(v=>{
+ grid.innerHTML+=`
+ <div class="card">
+  <img src="${v.i}" onclick="location.href='video.html?id=${v.id}'">
+  <p>${v.t}</p>
+ </div>`;
+});
+</script>
 </body>
 </html>
