@@ -3,105 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <title>NormandX</title>
-
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+body{
+  margin:0;
+  height:100vh;
+  background:
+    radial-gradient(circle at center,#3b145f,#000);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:Arial,Helvetica,sans-serif;
+  color:white;
 }
 
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #3b145f, #000);
-  font-family: Arial, Helvetica, sans-serif;
-  color: white;
+.box{
+  background:rgba(20,20,20,.92);
+  padding:40px;
+  border-radius:18px;
+  width:360px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(0,0,0,.9);
+  animation:fade .4s ease;
 }
 
-/* CONTENEUR UNIQUE (aucun conflit CSS) */
-.age-only-box {
-  background: rgba(15,15,15,0.95);
-  padding: 40px;
-  border-radius: 20px;
-  width: 360px;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0,0,0,0.9);
+.logo{
+  font-size:36px;
+  font-weight:900;
+  margin-bottom:15px;
 }
+.logo span:first-child{color:red}
+.logo span:last-child{color:#ffb400}
 
-/* LOGO */
-.age-only-logo {
-  font-size: 36px;
-  font-weight: 900;
-  margin-bottom: 15px;
+.buttons{
+  display:flex;
+  gap:15px;
+  margin-top:25px;
 }
-.age-only-logo span:first-child { color: red; }
-.age-only-logo span:last-child { color: #ffb400; }
-
-/* TEXTE */
-.age-only-text {
-  font-size: 16px;
-  margin-bottom: 25px;
+button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:14px;
 }
+.yes{background:#8dffb3}
+.no{background:#ff5f7a;color:white}
 
-/* BOUTONS */
-.age-only-buttons {
-  display: flex;
-  gap: 15px;
-}
+small{opacity:.6;font-size:11px}
 
-.age-only-buttons button {
-  flex: 1;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.age-yes { background: #8dffb3; color: #000; }
-.age-no { background: #ff5f7a; color: #fff; }
-
-.age-only-legal {
-  margin-top: 15px;
-  font-size: 11px;
-  opacity: 0.7;
+@keyframes fade{
+  from{opacity:0;transform:scale(.95)}
+  to{opacity:1}
 }
 </style>
 </head>
 
 <body>
 
-<div class="age-only-box">
-  <div class="age-only-logo">
-    <span>Normand</span><span>X</span>
+<div class="box">
+  <div class="logo"><span>Normand</span><span>X</span></div>
+  <p>Ce site est réservé aux personnes majeures (+18).</p>
+
+  <div class="buttons">
+    <button class="yes" onclick="enter()">Oui, j’ai plus de 18 ans</button>
+    <button class="no" onclick="leave()">Non, je n’ai pas 18 ans</button>
   </div>
 
-  <div class="age-only-text">
-    Ce site est réservé aux personnes majeures (+18).
-  </div>
-
-  <div class="age-only-buttons">
-    <button class="age-yes" onclick="enter()">Oui, j’ai plus de 18 ans</button>
-    <button class="age-no" onclick="leave()">Non, je n’ai pas 18 ans</button>
-  </div>
-
-  <div class="age-only-legal">
+  <small>
     En entrant sur ce site, vous certifiez être majeur conformément aux lois en vigueur.
-  </div>
+  </small>
 </div>
 
 <script>
-function enter() {
-  localStorage.setItem("age", "ok");
-  location.href = "auth.html";
+function enter(){
+  localStorage.setItem("age","ok");
+  location.href="auth.html";
 }
-function leave() {
-  location.href = "https://google.com";
+function leave(){
+  location.href="https://google.com";
 }
 </script>
 
 </body>
 </html>
+
