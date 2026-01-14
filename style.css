@@ -173,6 +173,79 @@ main{flex:1;padding:20px}
   opacity: 0;
 }
 
+ /* === GRID STYLE PORNHUB === */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* === CARD === */
+.card {
+  background: #111;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* === THUMB FORMAT 16:9 === */
+.thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;   /* CLÉ DU FORMAT PORNHUB */
+  overflow: hidden;
+}
+
+/* image + vidéo bien cadrées */
+.thumb img,
+.thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;     /* zoom / cadrage comme Pornhub */
+  display: block;
+}
+
+/* vidéo par-dessus */
+.thumb video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* hover preview */
+.thumb:hover video {
+  opacity: 1;
+}
+
+.thumb:hover img {
+  opacity: 0;
+}
+
+/* === TEXTE === */
+.card p {
+  margin: 8px 10px 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.7;
+  margin: 0 10px 6px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  padding: 6px 10px 10px;
+}
+
  
 }
+
 
