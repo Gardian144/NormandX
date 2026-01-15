@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>NormandX</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,44 +14,56 @@
 
   <input class="search" placeholder="Rechercher..." oninput="search(this.value)">
 
-  <div class="account" onclick="toggleMenu()">👤</div>
+  <div class="account" onclick="toggleMenu()">
+    <img src="account.png">
+  </div>
 </header>
 
 <div class="menu" id="menu">
-  <a href="#">Compte</a>
-  <a href="#">Favoris</a>
-  <a href="#">Historique</a>
+  <a href="account.html">Compte</a>
+  <a href="favorites.html">Favoris</a>
+  <a href="history.html">Historique</a>
   <a onclick="logout()">Déconnexion</a>
 </div>
 
 <div class="layout">
-<aside>
+
+<aside id="categories">
   <a onclick="filter('Hetero')">Hétéro</a>
   <a onclick="filter('MILF')">MILF</a>
+  <a onclick="filter('Teen')">Teen</a>
+  <a onclick="filter('Anal')">Anal</a>
+  <a onclick="filter('Lesbian')">Lesbian</a>
+  <a onclick="filter('Gays')">Gays</a>
+  <a onclick="filter('Amateur')">Amateur</a>
+  <a onclick="filter('Asian')">Asian</a>
+  <a onclick="filter('BBW')">BBW</a>
+  <a onclick="filter('Fetish')">Fetish</a>
+  <a onclick="filter('Hardcore')">Hardcore</a>
+  <a onclick="filter('Compilation')">Compilation</a>
 </aside>
 
 <main>
   <div class="grid" id="grid"></div>
 </main>
+
 </div>
 
 <script>
 /* ===== AUTH ===== */
-const user = localStorage.getItem("connected") || "demo";
-localStorage.setItem("connected", user);
+const user = localStorage.getItem("connected");
+if(!user) location.href="auth.html";
 
-/* ===== MENU ===== */
 function toggleMenu(){
-  const m=document.getElementById("menu");
-  m.style.display = m.style.display==="block"?"none":"block";
+  menu.style.display = menu.style.display==="block"?"none":"block";
 }
 function logout(){
-  localStorage.clear();
-  location.reload();
+  localStorage.removeItem("connected");
+  location.href="auth.html";
 }
 
-/* ===== VIDEOS (SOURCE UNIQUE) ===== */
-const videos = [
+/* ===== VIDEOS ===== */
+const defaultVideos = [
  {
   id:1,
   t:"Carla Cute 1",
@@ -60,6 +71,7 @@ const videos = [
   poster:"thumbs/1.jpg",
   v:"https://ia601703.us.archive.org/22/items/video-1_20260114/Video1.mp4",
   d:"12:34",
+  hd:true,
   views:0
  },
  {
@@ -69,83 +81,144 @@ const videos = [
   poster:"thumbs/2.jpg",
   v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee_percee_par_filoufitt_360p.mp4",
   d:"18:05",
+  hd:true,
   views:0
  }
 ];
 
-localStorage.setItem("videos", JSON.stringify(videos));
+if(!localStorage.getItem("videos")){
+  localStorage.setItem("videos", JSON.stringify(defaultVideos));
+}
 
-/* ===== STATE ===== */
-let allVideos = videos;
-let likes = JSON.parse(localStorage.getItem("likes")||"[]");
-let favs  = JSON.parse(localStorage.getItem("favs")||"[]");
+let allVideos = JSON.parse(localStorage.getItem("videos"));
 
 /* ===== RENDER ===== */
 function render(list){
-  grid.innerHTML="";
+  grid.innerHTML = "";
+
+  const likes = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
+  const favs  = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+
   list.forEach(v=>{
-    grid.innerHTML+=`
-    <div class="card">
+    grid.innerHTML += `
+    <div class="card" onclick="openVideo(${v.id})">
+
       <div class="thumb"
-        onmouseenter="preview(this)"
-        onmouseleave="stopPreview(this)"
-        ontouchstart="preview(this)"
-        ontouchend="stopPreview(this)">
-        <img src="${v.poster}">
-        <video muted playsinline>
+        onmouseenter="previewStart(this)"
+        onmouseleave="previewStop(this)"
+        ontouchstart="previewStart(this)"
+        ontouchend="previewStop(this)">
+
+        <img src="${v.poster}" onerror="this.src='https://via.placeholder.com/640x360/111/555?text=No+Preview'">
+        <video muted playsinline preload="metadata">
           <source src="${v.v}" type="video/mp4">
         </video>
+
+        ${v.hd?'<span class="badge">HD</span>Projected':''}
         <span class="duration">${v.d}</span>
+        <div class="progress"><div></div></div>
       </div>
 
       <p>${v.t}</p>
 
-      <div class="actions">
-        <button class="like ${likes.includes(v.id)?'active':''}"
-          onclick="like(${v.id},this)">👍</button>
-        <button class="fav ${favs.includes(v.id)?'active':''}"
-          onclick="fav(${v.id},this)">❤</button>
+      <div class="meta">
+        <span>${v.views} vues</span>
+        <span>${v.c}</span>
       </div>
+
+      <div class="actions" onclick="event.stopPropagation()">
+        <button class="like ${likes.includes(v.id)?'active':''}"
+          onclick="toggleLike(${v.id},this)">👍</button>
+        <button class="fav ${favs.includes(v.id)?'active':''}"
+          onclick="toggleFav(${v.id},this)">❤</button>
+      </div>
+
     </div>`;
   });
 }
+
 render(allVideos);
 
 /* ===== PREVIEW ===== */
-let timer;
-function preview(el){
-  timer=setTimeout(()=>{
-    const v=el.querySelector("video");
-    el.classList.add("preview");
-    v.currentTime=0;
-    v.play();
+let hoverTimer;
+
+function previewStart(el){
+  const video = el.querySelector("video");
+  const img = el.querySelector("img");
+  const bar = el.querySelector(".progress div");
+
+  hoverTimer = setTimeout(()=>{
+    img.style.opacity="0";
+    video.style.opacity="1";
+    video.currentTime = 0;
+    video.play();
+    video.ontimeupdate = ()=>{
+      bar.style.width = (video.currentTime / video.duration * 100) + "%";
+    };
   },300);
 }
-function stopPreview(el){
-  clearTimeout(timer);
-  const v=el.querySelector("video");
-  el.classList.remove("preview");
-  v.pause(); v.currentTime=0;
+
+function previewStop(el){
+  clearTimeout(hoverTimer);
+  const video = el.querySelector("video");
+  const img = el.querySelector("img");
+  const bar = el.querySelector(".progress div");
+
+  video.pause();
+  video.currentTime = 0;
+  video.style.opacity="0";
+  img.style.opacity="1";
+  bar.style.width="0%";
 }
 
-/* ===== LIKE / FAV ===== */
-function like(id,btn){
-  likes.includes(id)?likes=likes.filter(x=>x!==id):likes.push(id);
-  btn.classList.toggle("active");
-  localStorage.setItem("likes",JSON.stringify(likes));
-}
-function fav(id,btn){
-  favs.includes(id)?favs=favs.filter(x=>x!==id):favs.push(id);
-  btn.classList.toggle("active");
-  localStorage.setItem("favs",JSON.stringify(favs));
+/* ===== OPEN VIDEO ===== */
+function openVideo(id){
+  let vids = JSON.parse(localStorage.getItem("videos"));
+  let v = vids.find(x=>x.id===id);
+  if(!v) return;
+
+  v.views++;
+  localStorage.setItem("videos", JSON.stringify(vids));
+
+  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+  h.unshift(id);
+  h = [...new Set(h)];
+  localStorage.setItem("history_"+user, JSON.stringify(h));
+
+  location.href = "video.html?id="+id;
 }
 
-/* ===== FILTER ===== */
-function filter(c){
-  render(allVideos.filter(v=>v.c===c));
-}
+/* ===== SEARCH / FILTER ===== */
 function search(q){
-  render(allVideos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
+  render(allVideos.filter(v => v.t.toLowerCase().includes(q.toLowerCase())));
+}
+function filter(c){
+  render(allVideos.filter(v => v.c === c));
+}
+
+/* ===== LIKE / FAVORI (RÉPARÉ) ===== */
+function toggleLike(id,btn){
+  let l = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
+  if(l.includes(id)){
+    l = l.filter(x=>x!==id);
+    btn.classList.remove("active");
+  } else {
+    l.push(id);
+    btn.classList.add("active");
+  }
+  localStorage.setItem("likes_"+user, JSON.stringify(l));
+}
+
+function toggleFav(id,btn){
+  let f = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+  if(f.includes(id)){
+    f = f.filter(x=>x!==id);
+    btn.classList.remove("active");
+  } else {
+    f.push(id);
+    btn.classList.add("active");
+  }
+  localStorage.setItem("fav_"+user, JSON.stringify(f));
 }
 </script>
 
