@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>NormandX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -21,9 +22,9 @@
 </header>
 
 <div class="menu" id="menu">
-  <a href="favorites.html">❤️Favoris</a>
-  <a href="history.html">📁Historique</a>
-  <a onclick="logout()">🚪Déconnexion</a>
+  <a href="favorites.html">❤️ Favoris</a>
+  <a href="history.html">📁 Historique</a>
+  <a onclick="logout()">🚪 Déconnexion</a>
 </div>
 
 <div class="layout">
@@ -50,9 +51,7 @@
 <script>
 /* ===== AUTH ===== */
 const user = localStorage.getItem("connected");
-if(!user){
-  location.href="auth.html";
-}
+if(!user) location.href="auth.html";
 
 /* ===== MENU ===== */
 function toggleMenu(){
@@ -86,36 +85,23 @@ const videos=[
  }
 ];
 
-/* 🔴 AJOUT OBLIGATOIRE POUR favorites.html */
 localStorage.setItem("videos", JSON.stringify(videos));
 
-/* ===== FAVORIS (LOGIQUE IDENTIQUE À favorites.html) ===== */
-let favorites = JSON.parse(
-  localStorage.getItem("fav_"+user) || "[]"
-);
+/* ===== FAVORIS ===== */
+let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
 
 function toggleFav(e,id){
   e.stopPropagation();
-
   favorites.includes(id)
     ? favorites = favorites.filter(f=>f!==id)
     : favorites.push(id);
-
-  localStorage.setItem(
-    "fav_"+user,
-    JSON.stringify(favorites)
-  );
-
+  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
   updateFavUI();
 }
 
 function updateFavUI(){
   document.querySelectorAll(".fav-btn").forEach(b=>{
-    const id = +b.dataset.id;
-    b.classList.toggle(
-      "active",
-      favorites.includes(id)
-    );
+    b.classList.toggle("active", favorites.includes(+b.dataset.id));
   });
 }
 
@@ -127,25 +113,15 @@ function render(list){
   list.forEach(v=>{
     const card=document.createElement("div");
     card.className="card";
-    card.onclick = () => {
-  addHistory(v.id);
-  location.href = "video.html?id=" + v.id;
-};
-  function addHistory(id){
-  const user = localStorage.getItem("connected") || "default";
-  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
-
-  h = h.filter(x => x !== id); // pas de doublon
-  h.unshift(id);               // le plus récent en premier
-
-  localStorage.setItem("history_"+user, JSON.stringify(h));
-}
+    card.onclick=()=>{
+      addHistory(v.id);
+      location.href="video.html?id="+v.id;
+    };
 
     card.innerHTML=`
       <div class="thumb"
-  onmouseenter="previewStart(this)"
-  onmouseleave="previewStop(this)"
-  ontouchstart="touchPreviewStart(this,'video.html?id=${v.id}')">
+        onmouseenter="previewStart(this)"
+        onmouseleave="previewStop(this)">
         <img src="${v.poster}">
         <video muted playsinline preload="metadata">
           <source src="${v.v}" type="video/mp4">
@@ -154,13 +130,11 @@ function render(list){
       </div>
 
       <div class="fav-row">
-        <button class="fav-btn"
-          data-id="${v.id}"
+        <button class="fav-btn" data-id="${v.id}"
           onclick="toggleFav(event,${v.id})">❤</button>
       </div>
 
       <p>${v.t}</p>
-
       <div class="meta">
         <span>${v.views} vues</span>
         <span>${v.c}</span>
@@ -171,53 +145,43 @@ function render(list){
   updateFavUI();
 }
 
+function addHistory(id){
+  let h=JSON.parse(localStorage.getItem("history_"+user)||"[]");
+  h=h.filter(x=>x!==id);
+  h.unshift(id);
+  localStorage.setItem("history_"+user,JSON.stringify(h));
+}
+
 render(videos);
 
-/* ===== PREVIEW ===== */
-let touchPreview = false;
-
+/* ===== PREVIEW PC ONLY ===== */
 function previewStart(el){
-  const v = el.querySelector("video");
-  const i = el.querySelector("img");
-  if(!v) return;
-
-  v.currentTime = 0.1;
-  v.oncanplay = () => {
-    i.style.opacity = 0;
-    v.style.opacity = 1;
+  if(window.innerWidth<900) return;
+  const v=el.querySelector("video");
+  const i=el.querySelector("img");
+  v.currentTime=0.1;
+  v.oncanplay=()=>{
+    i.style.opacity=0;
+    v.style.opacity=1;
     v.play();
   };
 }
-
 function previewStop(el){
-  const v = el.querySelector("video");
-  const i = el.querySelector("img");
-  if(!v) return;
-
+  const v=el.querySelector("video");
+  const i=el.querySelector("img");
   v.pause();
-  v.style.opacity = 0;
-  i.style.opacity = 1;
+  v.style.opacity=0;
+  i.style.opacity=1;
 }
 
-/* 📱 Mobile : 1 tap = preview, 2e tap = ouvrir */
-function touchPreviewStart(el, url){
-  if(!el.dataset.previewed){
-    el.dataset.previewed = "1";
-    previewStart(el);
-    setTimeout(()=>delete el.dataset.previewed,1000);
-  } else {
-    location.href = url;
-  }
-}
-
-
-/* ===== SEARCH / FILTER (CATÉGORIES CONSERVÉES) ===== */
+/* ===== SEARCH / FILTER ===== */
 function search(q){
-  render(videos.filter(v =>
-    v.t.toLowerCase().includes(q.toLowerCase())
-  ));
+  render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
 }
 function filter(c){
-  render(videos.filter(v => v.c === c));
+  render(videos.filter(v=>v.c===c));
 }
 </script>
+
+</body>
+</html>
