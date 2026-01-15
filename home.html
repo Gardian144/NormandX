@@ -14,6 +14,11 @@
   </div>
 
   <input class="search" placeholder="Rechercher..." oninput="search(this.value)">
+
+  <div class="actions">
+    <button onclick="location.href='favorites.html'">❤</button>
+    <button onclick="location.href='history.html'">🕒</button>
+  </div>
 </header>
 
 <div class="layout">
@@ -40,9 +45,12 @@
 </div>
 
 <script>
-/* ===== AUTH ===== */
-const user = localStorage.getItem("connected");
-if(!user) location.href="auth.html";
+/* ===== USER SAFE (PLUS DE BOUCLE) ===== */
+let user = localStorage.getItem("connected");
+if(!user){
+ user="guest";
+ localStorage.setItem("connected","guest");
+}
 
 /* ===== VIDEOS ===== */
 const videos=[
@@ -71,103 +79,84 @@ const videos=[
 ];
 
 /* ===== FAVORIS ===== */
-let fav = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+let fav=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
 
 function toggleFav(e,id){
-  e.stopPropagation();
-  fav.includes(id)
-    ? fav = fav.filter(x=>x!==id)
-    : fav.push(id);
-  localStorage.setItem("fav_"+user,JSON.stringify(fav));
-  updateFavUI();
+ e.stopPropagation();
+ fav.includes(id)?fav=fav.filter(x=>x!==id):fav.push(id);
+ localStorage.setItem("fav_"+user,JSON.stringify(fav));
+ updateFavUI();
 }
 
 function updateFavUI(){
-  document.querySelectorAll(".fav-btn").forEach(b=>{
-    b.classList.toggle("active", fav.includes(+b.dataset.id));
-  });
+ document.querySelectorAll(".fav-btn").forEach(b=>{
+  b.classList.toggle("active",fav.includes(+b.dataset.id));
+ });
 }
 
 /* ===== RENDER ===== */
 const grid=document.getElementById("grid");
 
 function render(list){
-  grid.innerHTML="";
-  list.forEach(v=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.onclick=()=>openVideo(v.id);
-
-    card.innerHTML=`
-      <div class="thumb"
-        onmouseenter="previewStart(this)"
-        onmouseleave="previewStop(this)"
-        ontouchstart="previewStart(this)"
-        ontouchend="previewStop(this)">
-        
-        <img src="${v.poster}"
-          onerror="this.src='https://via.placeholder.com/640x360/000/fff?text=Preview'">
-
-        <video muted playsinline preload="none" data-src="${v.v}"></video>
-
-        ${v.hd?'<span class="badge">HD</span>':''}
-        ${v.isNew?'<span class="badge new">NEW</span>':''}
-        <span class="duration">${v.d}</span>
-      </div>
-
-      <div class="fav-row">
-        <button class="fav-btn" data-id="${v.id}"
-          onclick="toggleFav(event,${v.id})">❤</button>
-      </div>
-
-      <p>${v.t}</p>
-
-      <div class="meta">
-        <span>${v.views} vues</span>
-        <span>${v.c}</span>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
-  updateFavUI();
+ grid.innerHTML="";
+ list.forEach(v=>{
+  const card=document.createElement("div");
+  card.className="card";
+  card.onclick=()=>openVideo(v.id);
+  card.innerHTML=`
+   <div class="thumb"
+    onmouseenter="previewStart(this)"
+    onmouseleave="previewStop(this)"
+    ontouchstart="previewStart(this)"
+    ontouchend="previewStop(this)">
+    <img src="${v.poster}">
+    <video muted playsinline data-src="${v.v}"></video>
+    ${v.hd?'<span class="badge">HD</span>':''}
+    ${v.isNew?'<span class="badge new">NEW</span>':''}
+    <span class="duration">${v.d}</span>
+   </div>
+   <div class="fav-row">
+    <button class="fav-btn" data-id="${v.id}" onclick="toggleFav(event,${v.id})">❤</button>
+   </div>
+   <p>${v.t}</p>
+   <div class="meta"><span>${v.views} vues</span><span>${v.c}</span></div>
+  `;
+  grid.appendChild(card);
+ });
+ updateFavUI();
 }
-
 render(videos);
 
-/* ===== PREVIEW PC + MOBILE ===== */
+/* ===== PREVIEW ===== */
 function previewStart(el){
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
-  if(!v.src) v.src=v.dataset.src;
-  v.currentTime=0.1;
-  v.play();
-  v.style.opacity=1;
-  i.style.opacity=0;
+ const v=el.querySelector("video");
+ const i=el.querySelector("img");
+ if(!v.src) v.src=v.dataset.src;
+ v.currentTime=0.1;
+ v.play();
+ v.style.opacity=1;
+ i.style.opacity=0;
 }
 function previewStop(el){
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
-  v.pause();
-  v.style.opacity=0;
-  i.style.opacity=1;
+ const v=el.querySelector("video");
+ const i=el.querySelector("img");
+ v.pause();
+ v.style.opacity=0;
+ i.style.opacity=1;
 }
 
-/* ===== OPEN VIDEO + HISTORIQUE ===== */
+/* ===== HISTORIQUE ===== */
 function openVideo(id){
-  let h=JSON.parse(localStorage.getItem("history_"+user)||"[]");
-  h.unshift(id);
-  h=[...new Set(h)];
-  localStorage.setItem("history_"+user,JSON.stringify(h));
-  location.href="video.html?id="+id;
+ let h=JSON.parse(localStorage.getItem("history_"+user)||"[]");
+ h.unshift(id);
+ h=[...new Set(h)];
+ localStorage.setItem("history_"+user,JSON.stringify(h));
+ location.href="video.html?id="+id;
 }
 
 /* ===== SEARCH / FILTER ===== */
-function search(q){
-  render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
-}
-function filter(c){
-  render(videos.filter(v=>v.c===c));
-}
+function search(q){render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())))}
+function filter(c){render(videos.filter(v=>v.c===c))}
 </script>
 
 </body>
