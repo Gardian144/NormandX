@@ -87,22 +87,26 @@ const videos=[
 ];
 
 /* ===== FAVORIS ===== */
-let favorites = JSON.parse(localStorage.getItem("favorites")||"[]");
+const user = localStorage.getItem("connected");
+let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
 
 function toggleFav(e,id){
   e.stopPropagation();
-  favorites.includes(id)
-    ? favorites=favorites.filter(f=>f!==id)
-    : favorites.push(id);
 
-  localStorage.setItem("favorites",JSON.stringify(favorites));
+  if(favorites.includes(id)){
+    favorites = favorites.filter(f=>f!==id);
+  }else{
+    favorites.push(id);
+  }
+
+  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
   updateFavUI();
 }
 
 function updateFavUI(){
-  document.querySelectorAll(".fav-btn").forEach(b=>{
-    const id=+b.dataset.id;
-    b.classList.toggle("active",favorites.includes(id));
+  document.querySelectorAll(".fav-btn").forEach(btn=>{
+    const id = Number(btn.dataset.id);
+    btn.classList.toggle("active", favorites.includes(id));
   });
 }
 
