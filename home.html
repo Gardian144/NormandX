@@ -1,3 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NormandX</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span>Normand</span><span>X</span>
+  </div>
+
+  <input class="search" type="text" placeholder="Rechercher...">
+
+  <img src="https://i.imgur.com/8Km9tLL.png" class="account" onclick="toggleMenu()">
+
+  <div class="menu" id="menu">
+    <a href="favoris.html">❤️ Favoris</a>
+    <a href="historique.html">🕒 Historique</a>
+    <a href="#" onclick="logout()">🚪 Déconnexion</a>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- CATEGORIES -->
+  <aside>
+    <a>Hétéro</a>
+    <a>MILF</a>
+    <a>Teen</a>
+    <a>Anal</a>
+    <a>Lesbian</a>
+    <a>Gays</a>
+    <a>Amateur</a>
+    <a>Asian</a>
+    <a>BBW</a>
+    <a>Fetish</a>
+    <a>Hardcore</a>
+    <a>Compilation</a>
+  </aside>
+
+  <!-- CONTENT -->
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+</div>
+
 <script>
 /* ===== AUTH ===== */
 const user = localStorage.getItem("connected") || "guest";
@@ -5,16 +59,16 @@ localStorage.setItem("connected", user);
 
 /* ===== MENU ===== */
 function toggleMenu(){
-  const m=document.getElementById("menu");
-  m.style.display = m.style.display==="block"?"none":"block";
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display === "block" ? "none" : "block";
 }
 function logout(){
   localStorage.removeItem("connected");
   location.reload();
 }
 
-/* ===== DATA ===== */
-const videos=[
+/* ===== VIDEOS ===== */
+const videos = [
  {
   id:1,
   t:"Carla Cute 1",
@@ -45,19 +99,19 @@ localStorage.setItem("videos", JSON.stringify(videos));
 let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
 
 /* ===== RENDER ===== */
-const grid=document.getElementById("grid");
+const grid = document.getElementById("grid");
 
 function render(list){
-  grid.innerHTML="";
-  list.forEach(v=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.onclick=()=>{
+  grid.innerHTML = "";
+  list.forEach(v => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.onclick = () => {
       addHistory(v.id);
-      location.href="video.html?id="+v.id;
+      location.href = "video.html?id=" + v.id;
     };
 
-    card.innerHTML=`
+    card.innerHTML = `
       <div class="thumb"
         onmouseenter="previewStart(this)"
         onmouseleave="previewStop(this)">
@@ -65,15 +119,14 @@ function render(list){
         <video muted playsinline preload="metadata">
           <source src="${v.v}" type="video/mp4">
         </video>
-        ${v.hd?'<span class="badge">HD</span>':''}
-        ${v.isNew?'<span class="badge new">NEW</span>':''}
+        ${v.hd ? '<span class="badge">HD</span>' : ''}
+        ${v.isNew ? '<span class="badge new">NEW</span>' : ''}
         <span class="duration">${v.d}</span>
       </div>
 
       <div class="fav-row">
-        <button class="fav-btn ${favorites.includes(v.id)?'active':''}"
-          data-id="${v.id}"
-          onclick="toggleFav(event,${v.id})">❤</button>
+        <button class="fav-btn ${favorites.includes(v.id) ? 'active' : ''}"
+          onclick="toggleFav(event, ${v.id})">❤</button>
       </div>
 
       <p>${v.t}</p>
@@ -86,41 +139,45 @@ function render(list){
   });
 }
 
-function toggleFav(e,id){
- e.stopPropagation();
- favorites.includes(id)
-  ? favorites=favorites.filter(x=>x!==id)
-  : favorites.push(id);
- localStorage.setItem("fav_"+user,JSON.stringify(favorites));
- render(videos);
+function toggleFav(e, id){
+  e.stopPropagation();
+  favorites.includes(id)
+    ? favorites = favorites.filter(x => x !== id)
+    : favorites.push(id);
+  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
+  render(videos);
 }
 
+/* ===== HISTORIQUE ===== */
 function addHistory(id){
- let h=JSON.parse(localStorage.getItem("history_"+user)||"[]");
- h=h.filter(x=>x!==id);
- h.unshift(id);
- localStorage.setItem("history_"+user,JSON.stringify(h));
+  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+  h = h.filter(x => x !== id);
+  h.unshift(id);
+  localStorage.setItem("history_"+user, JSON.stringify(h));
 }
-
-render(videos);
 
 /* ===== PREVIEW PC ===== */
 function previewStart(el){
- if(window.innerWidth<900) return;
- const v=el.querySelector("video");
- const i=el.querySelector("img");
- v.currentTime=0.1;
- v.oncanplay=()=>{
-  i.style.opacity=0;
-  v.style.opacity=1;
-  v.play();
- };
+  if(window.innerWidth < 900) return;
+  const v = el.querySelector("video");
+  const i = el.querySelector("img");
+  v.currentTime = 0.1;
+  v.oncanplay = () => {
+    i.style.opacity = 0;
+    v.style.opacity = 1;
+    v.play();
+  };
 }
 function previewStop(el){
- const v=el.querySelector("video");
- const i=el.querySelector("img");
- v.pause();
- v.style.opacity=0;
- i.style.opacity=1;
+  const v = el.querySelector("video");
+  const i = el.querySelector("img");
+  v.pause();
+  v.style.opacity = 0;
+  i.style.opacity = 1;
 }
+
+render(videos);
 </script>
+
+</body>
+</html>
