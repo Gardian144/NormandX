@@ -1,50 +1,56 @@
 *{box-sizing:border-box}
-body{
- margin:0;
- background:#000;
- color:#fff;
- font-family:Arial,Helvetica,sans-serif
-}
+body{margin:0;background:#000;color:#fff;font-family:Arial}
+a{text-decoration:none;color:inherit}
 
 /* HEADER */
 header{
  display:flex;
  align-items:center;
- gap:12px;
  padding:12px 16px;
  background:#111;
  position:sticky;
  top:0;
- z-index:100;
+ z-index:1000;
 }
-
-.logo{font-size:26px;font-weight:900}
+.logo{font-size:26px;font-weight:900;cursor:pointer}
 .logo span:first-child{color:red}
 .logo span:last-child{color:#ffb400}
-
 .search{
- flex:1;
- max-width:400px;
+ margin:auto;
+ width:360px;
  padding:10px 16px;
  border-radius:20px;
  border:none;
  background:#222;
  color:#fff;
 }
-
-/* ACTIONS */
-.actions{
- display:flex;
- gap:10px;
- z-index:200;
+.account{
+ width:38px;
+ height:38px;
+ border-radius:50%;
+ overflow:hidden;
+ border:2px solid #ff9000;
 }
-.actions button{
- background:#222;
- border:none;
- color:#fff;
- padding:8px 12px;
- border-radius:10px;
- cursor:pointer;
+
+/* MENU */
+.menu{
+ display:none;
+ position:absolute;
+ right:16px;
+ top:60px;
+ background:#111;
+ border-radius:12px;
+ min-width:160px;
+ z-index:1100;
+}
+.menu a{
+ display:block;
+ padding:12px;
+ color:#ccc;
+}
+.menu a:hover{
+ background:#1a1a1a;
+ color:#ff9000;
 }
 
 /* LAYOUT */
@@ -53,17 +59,18 @@ aside{
  width:200px;
  background:#0d0d0d;
  padding:14px;
- z-index:50;
 }
 aside a{
  display:block;
  padding:10px;
  border-radius:8px;
  color:#ccc;
- margin-bottom:6px;
  cursor:pointer;
 }
-aside a:hover{background:#1a1a1a;color:#ff9000}
+aside a:hover{
+ background:#1a1a1a;
+ color:#ff9000;
+}
 main{flex:1;padding:20px}
 
 /* GRID */
@@ -79,11 +86,14 @@ main{flex:1;padding:20px}
  border-radius:16px;
  overflow:hidden;
  cursor:pointer;
+ transition:.2s;
 }
+.card:hover{transform:translateY(-6px)}
 
 /* THUMB */
 .thumb{
  position:relative;
+ width:100%;
  aspect-ratio:16/9;
  background:#000;
  overflow:hidden;
@@ -95,29 +105,9 @@ main{flex:1;padding:20px}
  width:100%;
  height:100%;
  object-fit:cover;
+ transition:.2s;
 }
-.thumb video{
- opacity:0;
- pointer-events:none;
-}
-
-/* BADGES */
-.badge{
- position:absolute;
- top:8px;
- left:8px;
- background:#ff9000;
- color:#000;
- font-size:11px;
- padding:3px 6px;
- border-radius:4px;
-}
-.badge.new{
- right:8px;
- left:auto;
- background:#ff3050;
- color:#fff;
-}
+.thumb video{opacity:0}
 
 /* DURATION */
 .duration{
@@ -130,18 +120,23 @@ main{flex:1;padding:20px}
  font-size:12px;
 }
 
-/* FAVORI */
+/* FAVORIS */
 .fav-row{padding:6px 10px 0}
 .fav-btn{
  background:none;
  border:none;
  font-size:22px;
- color:#666;
+ cursor:pointer;
+ color:#777;
 }
-.fav-btn.active{color:#ff3050}
+.fav-btn.active{color:#ff4d6d}
 
 /* TEXT */
-.card p{margin:8px 10px 4px;font-size:14px}
+.card p{
+ margin:8px 10px 4px;
+ font-size:14px;
+ font-weight:600;
+}
 .meta{
  display:flex;
  justify-content:space-between;
@@ -150,68 +145,11 @@ main{flex:1;padding:20px}
  margin:0 10px 10px;
 }
 
-/* ===== USER MENU ===== */
-.user-menu{
- position:relative;
-}
-
-.user-btn{
- width:38px;
- height:38px;
- border-radius:50%;
- background:#ff9000;
- color:#000;
- display:flex;
- align-items:center;
- justify-content:center;
- font-size:18px;
- font-weight:bold;
- cursor:pointer;
-}
-
-.dropdown{
- position:absolute;
- right:0;
- top:48px;
- background:#111;
- border-radius:12px;
- min-width:160px;
- display:none;
- overflow:hidden;
- box-shadow:0 10px 30px rgba(0,0,0,.6);
- z-index:20;
-}
-
-.dropdown.show{display:block}
-
-.dropdown div{
- padding:12px 14px;
- cursor:pointer;
- font-size:14px;
-}
-.dropdown div:hover{
- background:#1a1a1a;
- color:#ff9000;
-}
-
 /* MOBILE */
 @media(max-width:900px){
- .layout{flex-direction:column}
- aside{
-  width:100%;
-  display:flex;
-  gap:10px;
-  overflow-x:auto;
- }
- aside a{
-  white-space:nowrap;
-  background:#1a1a1a;
-  padding:8px 14px;
-  border-radius:20px;
-  font-size:13px;
- }
- .grid{
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
- }
+ aside{display:none}
  .search{display:none}
+ header{justify-content:space-between}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+ .thumb video{display:none}
 }
