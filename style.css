@@ -10,7 +10,7 @@ header{
  background:#111;
  position:sticky;
  top:0;
- z-index:10;
+ z-index:1000;
 }
 .logo{font-size:26px;font-weight:900;cursor:pointer}
 .logo span:first-child{color:red}
@@ -41,6 +41,7 @@ header{
  background:#111;
  border-radius:12px;
  min-width:160px;
+ z-index:1100;
 }
 .menu a{
  display:block;
@@ -119,23 +120,16 @@ main{flex:1;padding:20px}
  font-size:12px;
 }
 
-/* FAVORIS SOUS LA VIDÉO */
-.fav-row{
- padding:6px 10px 0;
-}
-
+/* FAVORIS */
+.fav-row{padding:6px 10px 0}
 .fav-btn{
  background:none;
  border:none;
  font-size:22px;
  cursor:pointer;
  color:#777;
- padding:0;
 }
-
-.fav-btn.active{
- color:#ff4d6d;
-}
+.fav-btn.active{color:#ff4d6d}
 
 /* TEXT */
 .card p{
@@ -151,35 +145,11 @@ main{flex:1;padding:20px}
  margin:0 10px 10px;
 }
 
-/* ===== FIX MOBILE UI / VIDEO ===== */
-@media (max-width:900px){
-
-  /* Empêche les vidéos de passer au-dessus de l'UI */
-  .thumb video{
-    pointer-events:none;
-  }
-
-  /* Assure que les cartes restent sous le header */
-  .card,
-  .thumb{
-    position:relative;
-    z-index:1;
-  }
-
-  /* Header et menu toujours au-dessus */
-  header{
-    z-index:1000;
-  }
-
-  .menu{
-    z-index:1100;
-  }
-}
-
-/* MOBILE (sans casser PC) */
+/* MOBILE */
 @media(max-width:900px){
  aside{display:none}
  .search{display:none}
  header{justify-content:space-between}
  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+ .thumb video{display:none}
 }
