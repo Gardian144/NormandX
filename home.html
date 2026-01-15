@@ -50,7 +50,8 @@
 
 <script>
 /* ===== AUTH ===== */
-if(!localStorage.getItem("connected")){
+const user = localStorage.getItem("connected");
+if(!user){
   location.href="auth.html";
 }
 
@@ -86,27 +87,36 @@ const videos=[
  }
 ];
 
-/* ===== FAVORIS ===== */
-const user = localStorage.getItem("connected");
-let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+/* 🔴 AJOUT OBLIGATOIRE POUR favorites.html */
+localStorage.setItem("videos", JSON.stringify(videos));
+
+/* ===== FAVORIS (LOGIQUE IDENTIQUE À favorites.html) ===== */
+let favorites = JSON.parse(
+  localStorage.getItem("fav_"+user) || "[]"
+);
 
 function toggleFav(e,id){
   e.stopPropagation();
 
-  if(favorites.includes(id)){
-    favorites = favorites.filter(f=>f!==id);
-  }else{
-    favorites.push(id);
-  }
+  favorites.includes(id)
+    ? favorites = favorites.filter(f=>f!==id)
+    : favorites.push(id);
 
-  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
+  localStorage.setItem(
+    "fav_"+user,
+    JSON.stringify(favorites)
+  );
+
   updateFavUI();
 }
 
 function updateFavUI(){
-  document.querySelectorAll(".fav-btn").forEach(btn=>{
-    const id = Number(btn.dataset.id);
-    btn.classList.toggle("active", favorites.includes(id));
+  document.querySelectorAll(".fav-btn").forEach(b=>{
+    const id = +b.dataset.id;
+    b.classList.toggle(
+      "active",
+      favorites.includes(id)
+    );
   });
 }
 
@@ -132,7 +142,8 @@ function render(list){
       </div>
 
       <div class="fav-row">
-        <button class="fav-btn" data-id="${v.id}"
+        <button class="fav-btn"
+          data-id="${v.id}"
           onclick="toggleFav(event,${v.id})">❤</button>
       </div>
 
@@ -169,14 +180,13 @@ function previewStop(el){
   i.style.opacity=1;
 }
 
-/* ===== SEARCH / FILTER ===== */
+/* ===== SEARCH / FILTER (CATÉGORIES CONSERVÉES) ===== */
 function search(q){
-  render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
+  render(videos.filter(v =>
+    v.t.toLowerCase().includes(q.toLowerCase())
+  ));
 }
 function filter(c){
-  render(videos.filter(v=>v.c===c));
+  render(videos.filter(v => v.c === c));
 }
 </script>
-
-</body>
-</html>
