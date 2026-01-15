@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>NormandX</title>
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -53,16 +53,15 @@
 <script>
 /* ===== AUTH ===== */
 const user = localStorage.getItem("connected");
-if(!user) location.href = "auth.html";
+if(!user) location.href="auth.html";
 
 function toggleMenu(){
-  const menu = document.getElementById("menu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display==="block" ? "none" : "block";
 }
-
 function logout(){
   localStorage.removeItem("connected");
-  location.href = "auth.html";
+  location.href="auth.html";
 }
 
 /* ===== VIDEOS ===== */
@@ -105,11 +104,16 @@ function render(list){
 
   list.forEach(v=>{
     grid.innerHTML += `
-    <div class="card" onclick="openVideo(${v.id})">
+    <div class="card"
+      onmouseenter="previewStart(this)"
+      onmouseleave="previewStop(this)"
+      onclick="openVideo(${v.id})">
 
       <div class="thumb">
-        <img src="${v.poster}"
-             onerror="this.src='https://via.placeholder.com/640x360/111/555?text=No+Preview'">
+        <img src="${v.poster}">
+        <video muted playsinline preload="metadata">
+          <source src="${v.v}" type="video/mp4">
+        </video>
         ${v.hd ? '<span class="badge">HD</span>' : ''}
         <span class="duration">${v.d}</span>
       </div>
@@ -123,9 +127,9 @@ function render(list){
 
       <div class="actions" onclick="event.stopPropagation()">
         <button class="like ${likes.includes(v.id)?'active':''}"
-          onclick="toggleLike(${v.id}, this)">👍</button>
+          onclick="toggleLike(${v.id},this)">👍</button>
         <button class="fav ${favs.includes(v.id)?'active':''}"
-          onclick="toggleFav(${v.id}, this)">❤</button>
+          onclick="toggleFav(${v.id},this)">❤</button>
       </div>
 
     </div>`;
@@ -133,6 +137,29 @@ function render(list){
 }
 
 render(allVideos);
+
+/* ===== PREVIEW STABLE ===== */
+function previewStart(card){
+  const video = card.querySelector("video");
+  const img = card.querySelector("img");
+
+  img.style.display = "none";
+  video.style.display = "block";
+
+  video.currentTime = 0;
+  video.play().catch(()=>{});
+}
+
+function previewStop(card){
+  const video = card.querySelector("video");
+  const img = card.querySelector("img");
+
+  video.pause();
+  video.currentTime = 0;
+
+  video.style.display = "none";
+  img.style.display = "block";
+}
 
 /* ===== OPEN VIDEO ===== */
 function openVideo(id){
@@ -142,49 +169,29 @@ function openVideo(id){
 
   v.views++;
   localStorage.setItem("videos", JSON.stringify(vids));
-
-  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
-  h.unshift(id);
-  h = [...new Set(h)];
-  localStorage.setItem("history_"+user, JSON.stringify(h));
-
-  location.href = "video.html?id=" + id;
+  location.href="video.html?id="+id;
 }
 
 /* ===== SEARCH / FILTER ===== */
 function search(q){
-  render(allVideos.filter(v =>
-    v.t.toLowerCase().includes(q.toLowerCase())
-  ));
+  render(allVideos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
 }
-
 function filter(c){
-  render(allVideos.filter(v => v.c === c));
+  render(allVideos.filter(v=>v.c===c));
 }
 
 /* ===== LIKE / FAVORI ===== */
-function toggleLike(id, btn){
-  let l = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
-  if(l.includes(id)){
-    l = l.filter(x=>x!==id);
-    btn.classList.remove("active");
-  } else {
-    l.push(id);
-    btn.classList.add("active");
-  }
-  localStorage.setItem("likes_"+user, JSON.stringify(l));
+function toggleLike(id,btn){
+  let l = JSON.parse(localStorage.getItem("likes_"+user)||"[]");
+  l.includes(id) ? l=l.filter(x=>x!==id) : l.push(id);
+  btn.classList.toggle("active");
+  localStorage.setItem("likes_"+user,JSON.stringify(l));
 }
-
-function toggleFav(id, btn){
-  let f = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
-  if(f.includes(id)){
-    f = f.filter(x=>x!==id);
-    btn.classList.remove("active");
-  } else {
-    f.push(id);
-    btn.classList.add("active");
-  }
-  localStorage.setItem("fav_"+user, JSON.stringify(f));
+function toggleFav(id,btn){
+  let f = JSON.parse(localStorage.getItem("fav_"+user)||"[]");
+  f.includes(id) ? f=f.filter(x=>x!==id) : f.push(id);
+  btn.classList.toggle("active");
+  localStorage.setItem("fav_"+user,JSON.stringify(f));
 }
 </script>
 
