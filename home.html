@@ -104,11 +104,7 @@ function render(list){
     grid.innerHTML += `
     <div class="card" onclick="openVideo(${v.id})">
 
-      <div class="thumb"
-        onmouseenter="previewStart(this)"
-        onmouseleave="previewStop(this)"
-        ontouchstart="previewStart(this)"
-        ontouchend="previewStop(this)">
+      <div class="thumb">
 
         <img src="${v.poster}" onerror="this.src='https://via.placeholder.com/640x360/111/555?text=No+Preview'">
         <video muted playsinline preload="metadata">
