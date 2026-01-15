@@ -41,6 +41,7 @@
   <a onclick="filter('Fetish')">Fetish</a>
   <a onclick="filter('Hardcore')">Hardcore</a>
   <a onclick="filter('Compilation')">Compilation</a>
+  <a onclick="render(trendingVideos())">🔥 Tendances</a>
 </aside>
 
 <main>
@@ -86,9 +87,17 @@ const defaultVideos = [
  }
 ];
 
-if(!localStorage.getItem("videos")){
-  localStorage.setItem("videos", JSON.stringify(defaultVideos));
-}
+let stored = JSON.parse(localStorage.getItem("videos") || "[]");
+
+/* fusion sans doublons */
+defaultVideos.forEach(v=>{
+  if(!stored.find(x=>x.id===v.id)){
+    stored.push(v);
+  }
+});
+
+localStorage.setItem("videos", JSON.stringify(stored));
+let allVideos = stored;
 
 let allVideos = JSON.parse(localStorage.getItem("videos"));
 
@@ -201,6 +210,21 @@ function filter(c){
   render(allVideos.filter(v => v.c===c));
 }
 
+function trendingVideos(){
+  const likesMap = {};
+  JSON.parse(localStorage.getItem("likes_"+user)||"[]")
+    .forEach(id=>{
+      likesMap[id]=(likesMap[id]||0)+1;
+    });
+
+  return [...allVideos]
+    .sort((a,b)=>{
+      const scoreA = a.views + (likesMap[a.id]||0)*5;
+      const scoreB = b.views + (likesMap[b.id]||0)*5;
+      return scoreB - scoreA;
+    });
+}
+  
 /* ===== LIKE / FAVORI ===== */
 function like(id,btn){
   let l=JSON.parse(localStorage.getItem("likes_"+user)||"[]");
