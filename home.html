@@ -127,12 +127,25 @@ function render(list){
   list.forEach(v=>{
     const card=document.createElement("div");
     card.className="card";
-    card.onclick=()=>location.href="video.html?id="+v.id;
+    card.onclick = () => {
+  addHistory(v.id);
+  location.href = "video.html?id=" + v.id;
+};
+  function addHistory(id){
+  const user = localStorage.getItem("connected") || "default";
+  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+
+  h = h.filter(x => x !== id); // pas de doublon
+  h.unshift(id);               // le plus récent en premier
+
+  localStorage.setItem("history_"+user, JSON.stringify(h));
+}
 
     card.innerHTML=`
       <div class="thumb"
-        onmouseenter="previewStart(this)"
-        onmouseleave="previewStop(this)">
+  onmouseenter="previewStart(this)"
+  onmouseleave="previewStop(this)"
+  ontouchstart="touchPreviewStart(this,'video.html?id=${v.id}')">
         <img src="${v.poster}">
         <video muted playsinline preload="metadata">
           <source src="${v.v}" type="video/mp4">
@@ -161,23 +174,42 @@ function render(list){
 render(videos);
 
 /* ===== PREVIEW ===== */
+let touchPreview = false;
+
 function previewStart(el){
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
-  v.currentTime=0.1;
-  v.oncanplay=()=>{
-    i.style.opacity=0;
-    v.style.opacity=1;
+  const v = el.querySelector("video");
+  const i = el.querySelector("img");
+  if(!v) return;
+
+  v.currentTime = 0.1;
+  v.oncanplay = () => {
+    i.style.opacity = 0;
+    v.style.opacity = 1;
     v.play();
   };
 }
+
 function previewStop(el){
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
+  const v = el.querySelector("video");
+  const i = el.querySelector("img");
+  if(!v) return;
+
   v.pause();
-  v.style.opacity=0;
-  i.style.opacity=1;
+  v.style.opacity = 0;
+  i.style.opacity = 1;
 }
+
+/* 📱 Mobile : 1 tap = preview, 2e tap = ouvrir */
+function touchPreviewStart(el, url){
+  if(!el.dataset.previewed){
+    el.dataset.previewed = "1";
+    previewStart(el);
+    setTimeout(()=>delete el.dataset.previewed,1000);
+  } else {
+    location.href = url;
+  }
+}
+
 
 /* ===== SEARCH / FILTER (CATÉGORIES CONSERVÉES) ===== */
 function search(q){
