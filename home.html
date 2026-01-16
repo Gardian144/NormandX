@@ -21,18 +21,14 @@
   </div>
 </header>
 
-<!-- MENU COMPTE -->
 <div class="menu" id="menu">
   <a href="favorites.html">❤️ Favoris</a>
   <a href="history.html">📁 Historique</a>
   <a onclick="logout()">🚪 Déconnexion</a>
 </div>
 
-<!-- BOUTON CATEGORIES MOBILE -->
-<button class="cat-btn" onclick="toggleCats()">☰ Catégories</button>
-
 <div class="layout">
-<aside id="cats">
+<aside>
   <a onclick="filter('Hetero')">Hétéro</a>
   <a onclick="filter('MILF')">MILF</a>
   <a onclick="filter('Teen')">Teen</a>
@@ -57,7 +53,7 @@
 let user = localStorage.getItem("connected") || "guest";
 localStorage.setItem("connected", user);
 
-/* MENU COMPTE */
+/* MENU */
 function toggleMenu(){
   const m=document.getElementById("menu");
   m.style.display=m.style.display==="block"?"none":"block";
@@ -68,11 +64,6 @@ document.addEventListener("click",e=>{
 function logout(){
   localStorage.removeItem("connected");
   location.reload();
-}
-
-/* CATEGORIES MOBILE */
-function toggleCats(){
-  document.getElementById("cats").classList.toggle("open");
 }
 
 /* DATA */
@@ -91,7 +82,7 @@ const videos=[
   t:"Ma cousine m'a fait perdre le NNN",
   c:"Hetero",
   poster:"https://via.placeholder.com/640x360/000000/ffffff?text=Preview",
-  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee_percee-par-filoufitt_360p.mp4",
+  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee-percee-par-filoufitt_360p.mp4",
   d:"18:05",
   views:0
  }
@@ -112,8 +103,8 @@ function render(list){
     card.innerHTML=`
       <div class="thumb">
         <img src="${v.poster}">
-        <video muted playsinline preload="metadata">
-          <source src="${v.v}">
+        <video muted preload="metadata">
+          <source src="${v.v}" type="video/mp4">
         </video>
         <span class="duration">${v.d}</span>
       </div>
@@ -129,42 +120,34 @@ function render(list){
         <span>${v.c}</span>
       </div>
     `;
-
-    /* PREVIEW PC */
-    card.querySelector(".thumb").addEventListener("mouseenter",e=>{
-      if(innerWidth<900) return;
-      const vdo=e.currentTarget.querySelector("video");
-      const img=e.currentTarget.querySelector("img");
-      vdo.currentTime=0.1;
-      vdo.play();
-      vdo.style.opacity=1;
-      img.style.opacity=0;
-    });
-    card.querySelector(".thumb").addEventListener("mouseleave",e=>{
-      const vdo=e.currentTarget.querySelector("video");
-      const img=e.currentTarget.querySelector("img");
-      vdo.pause();
-      vdo.style.opacity=0;
-      img.style.opacity=1;
-    });
-
-    /* PREVIEW MOBILE */
-    card.querySelector(".thumb").addEventListener("touchstart",e=>{
-      const vdo=e.currentTarget.querySelector("video");
-      vdo.currentTime=0.1;
-      vdo.play();
-      vdo.style.opacity=1;
-    });
-    card.querySelector(".thumb").addEventListener("touchend",e=>{
-      const vdo=e.currentTarget.querySelector("video");
-      vdo.pause();
-      vdo.style.opacity=0;
-    });
-
     grid.appendChild(card);
   });
 }
 
+/* PREVIEW PC – EVENT DELEGATION (FIX DÉFINITIF) */
+grid.addEventListener("mouseover",e=>{
+  if(innerWidth<900) return;
+  const thumb=e.target.closest(".thumb");
+  if(!thumb) return;
+  const v=thumb.querySelector("video");
+  const i=thumb.querySelector("img");
+  v.currentTime=0.1;
+  v.play();
+  v.style.opacity=1;
+  i.style.opacity=0;
+});
+
+grid.addEventListener("mouseout",e=>{
+  const thumb=e.target.closest(".thumb");
+  if(!thumb) return;
+  const v=thumb.querySelector("video");
+  const i=thumb.querySelector("img");
+  v.pause();
+  v.style.opacity=0;
+  i.style.opacity=1;
+});
+
+/* FAVORIS */
 function toggleFav(e,id){
   e.stopPropagation();
   favorites.includes(id)
@@ -180,7 +163,6 @@ function search(q){
 }
 function filter(c){
   render(videos.filter(v=>v.c===c));
-  document.getElementById("cats").classList.remove("open");
 }
 
 render(videos);
