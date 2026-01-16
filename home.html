@@ -32,15 +32,6 @@
   <a onclick="filter('Hetero')">Hétéro</a>
   <a onclick="filter('MILF')">MILF</a>
   <a onclick="filter('Teen')">Teen</a>
-  <a onclick="filter('Anal')">Anal</a>
-  <a onclick="filter('Lesbian')">Lesbian</a>
-  <a onclick="filter('Gays')">Gays</a>
-  <a onclick="filter('Amateur')">Amateur</a>
-  <a onclick="filter('Asian')">Asian</a>
-  <a onclick="filter('BBW')">BBW</a>
-  <a onclick="filter('Fetish')">Fetish</a>
-  <a onclick="filter('Hardcore')">Hardcore</a>
-  <a onclick="filter('Compilation')">Compilation</a>
 </aside>
 
 <main>
@@ -55,8 +46,7 @@ localStorage.setItem("connected", user);
 
 /* MENU */
 function toggleMenu(){
-  const m=document.getElementById("menu");
-  m.style.display=m.style.display==="block"?"none":"block";
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 document.addEventListener("click",e=>{
   if(!e.target.closest(".account")) menu.style.display="none";
@@ -103,58 +93,58 @@ function render(list){
     card.innerHTML=`
       <div class="thumb">
         <img src="${v.poster}">
-        <video muted preload="metadata">
+        <video muted playsinline preload="metadata">
           <source src="${v.v}" type="video/mp4">
         </video>
         <span class="duration">${v.d}</span>
       </div>
 
-      <div class="fav-row">
-        <button class="fav-btn ${favorites.includes(v.id)?"active":""}"
-          onclick="toggleFav(event,${v.id})">❤</button>
-      </div>
-
       <p>${v.t}</p>
-      <div class="meta">
-        <span>${v.views} vues</span>
-        <span>${v.c}</span>
-      </div>
     `;
     grid.appendChild(card);
   });
+
+  initPreviews();
 }
 
-/* PREVIEW PC – EVENT DELEGATION (FIX DÉFINITIF) */
-grid.addEventListener("mouseover",e=>{
-  if(innerWidth<900) return;
-  const thumb=e.target.closest(".thumb");
-  if(!thumb) return;
-  const v=thumb.querySelector("video");
-  const i=thumb.querySelector("img");
-  v.currentTime=0.1;
-  v.play();
-  v.style.opacity=1;
-  i.style.opacity=0;
-});
+/* PREVIEW LOGIC – FIX DÉFINITIF */
+function initPreviews(){
+  document.querySelectorAll(".thumb").forEach(thumb=>{
+    const video=thumb.querySelector("video");
+    const img=thumb.querySelector("img");
 
-grid.addEventListener("mouseout",e=>{
-  const thumb=e.target.closest(".thumb");
-  if(!thumb) return;
-  const v=thumb.querySelector("video");
-  const i=thumb.querySelector("img");
-  v.pause();
-  v.style.opacity=0;
-  i.style.opacity=1;
-});
+    /* PC */
+    thumb.addEventListener("mouseenter",()=>{
+      if(innerWidth<900) return;
+      video.load();
+      video.currentTime=0.05;
+      video.play();
+      video.style.opacity=1;
+      img.style.opacity=0;
+    });
 
-/* FAVORIS */
-function toggleFav(e,id){
-  e.stopPropagation();
-  favorites.includes(id)
-    ? favorites=favorites.filter(x=>x!==id)
-    : favorites.push(id);
-  localStorage.setItem("fav_"+user,JSON.stringify(favorites));
-  render(videos);
+    thumb.addEventListener("mouseleave",()=>{
+      video.pause();
+      video.style.opacity=0;
+      img.style.opacity=1;
+    });
+
+    /* MOBILE */
+    thumb.addEventListener("touchstart",e=>{
+      e.preventDefault();
+      video.load();
+      video.currentTime=0.05;
+      video.play();
+      video.style.opacity=1;
+      img.style.opacity=0;
+    });
+
+    thumb.addEventListener("touchend",()=>{
+      video.pause();
+      video.style.opacity=0;
+      img.style.opacity=1;
+    });
+  });
 }
 
 /* SEARCH / FILTER */
