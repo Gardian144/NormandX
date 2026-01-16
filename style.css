@@ -166,6 +166,31 @@ main{flex:1;padding:20px}
  margin:0 10px 10px;
 }
 
+/* BOUTON CATEGORIES MOBILE */
+.cat-btn{
+ display:none;
+ background:#111;
+ color:#fff;
+ border:none;
+ padding:10px 14px;
+ margin:10px;
+ border-radius:10px;
+}
+
+/* MOBILE */
+@media(max-width:900px){
+ .cat-btn{display:block}
+ aside{
+  position:fixed;
+  top:0;
+  left:-220px;
+  height:100%;
+  z-index:3000;
+  transition:.3s;
+ }
+ aside.open{left:0}
+}
+
 /* MOBILE */
 @media(max-width:900px){
  aside{display:none}
