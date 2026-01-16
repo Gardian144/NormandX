@@ -21,14 +21,18 @@
   </div>
 </header>
 
+<!-- MENU COMPTE -->
 <div class="menu" id="menu">
   <a href="favorites.html">❤️ Favoris</a>
   <a href="history.html">📁 Historique</a>
   <a onclick="logout()">🚪 Déconnexion</a>
 </div>
 
+<!-- BOUTON CATEGORIES MOBILE -->
+<button class="cat-btn" onclick="toggleCats()">☰ Catégories</button>
+
 <div class="layout">
-<aside>
+<aside id="cats">
   <a onclick="filter('Hetero')">Hétéro</a>
   <a onclick="filter('MILF')">MILF</a>
   <a onclick="filter('Teen')">Teen</a>
@@ -49,28 +53,30 @@
 </div>
 
 <script>
-/* ===== USER SAFE ===== */
-let user = localStorage.getItem("connected");
-if(!user){
-  user = "guest";
-  localStorage.setItem("connected", user);
-}
+/* USER */
+let user = localStorage.getItem("connected") || "guest";
+localStorage.setItem("connected", user);
 
-/* ===== MENU ===== */
+/* MENU COMPTE */
 function toggleMenu(){
-  const m = document.getElementById("menu");
-  m.style.display = m.style.display === "block" ? "none" : "block";
+  const m=document.getElementById("menu");
+  m.style.display=m.style.display==="block"?"none":"block";
 }
-document.addEventListener("click", e=>{
-  if(!e.target.closest(".account")) document.getElementById("menu").style.display="none";
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".account")) menu.style.display="none";
 });
 function logout(){
   localStorage.removeItem("connected");
   location.reload();
 }
 
-/* ===== DATA ===== */
-const videos = [
+/* CATEGORIES MOBILE */
+function toggleCats(){
+  document.getElementById("cats").classList.toggle("open");
+}
+
+/* DATA */
+const videos=[
  {
   id:1,
   t:"Carla Cute 1",
@@ -85,37 +91,29 @@ const videos = [
   t:"Ma cousine m'a fait perdre le NNN",
   c:"Hetero",
   poster:"https://via.placeholder.com/640x360/000000/ffffff?text=Preview",
-  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee_percee_par_filoufitt_360p.mp4",
+  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee_percee-par-filoufitt_360p.mp4",
   d:"18:05",
   views:0
  }
 ];
+localStorage.setItem("videos",JSON.stringify(videos));
 
-localStorage.setItem("videos", JSON.stringify(videos));
+let favorites=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
+const grid=document.getElementById("grid");
 
-/* ===== FAVORIS ===== */
-let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
-
-/* ===== GRID ===== */
-const grid = document.getElementById("grid");
-
+/* RENDER */
 function render(list){
   grid.innerHTML="";
   list.forEach(v=>{
     const card=document.createElement("div");
     card.className="card";
-    card.onclick=()=>{
-      addHistory(v.id);
-      location.href="video.html?id="+v.id;
-    };
+    card.onclick=()=>location.href="video.html?id="+v.id;
 
     card.innerHTML=`
-      <div class="thumb"
-        onmouseenter="previewStart(this)"
-        onmouseleave="previewStop(this)">
+      <div class="thumb">
         <img src="${v.poster}">
-        <video muted preload="metadata">
-          <source src="${v.v}" type="video/mp4">
+        <video muted playsinline preload="metadata">
+          <source src="${v.v}">
         </video>
         <span class="duration">${v.d}</span>
       </div>
@@ -131,6 +129,38 @@ function render(list){
         <span>${v.c}</span>
       </div>
     `;
+
+    /* PREVIEW PC */
+    card.querySelector(".thumb").addEventListener("mouseenter",e=>{
+      if(innerWidth<900) return;
+      const vdo=e.currentTarget.querySelector("video");
+      const img=e.currentTarget.querySelector("img");
+      vdo.currentTime=0.1;
+      vdo.play();
+      vdo.style.opacity=1;
+      img.style.opacity=0;
+    });
+    card.querySelector(".thumb").addEventListener("mouseleave",e=>{
+      const vdo=e.currentTarget.querySelector("video");
+      const img=e.currentTarget.querySelector("img");
+      vdo.pause();
+      vdo.style.opacity=0;
+      img.style.opacity=1;
+    });
+
+    /* PREVIEW MOBILE */
+    card.querySelector(".thumb").addEventListener("touchstart",e=>{
+      const vdo=e.currentTarget.querySelector("video");
+      vdo.currentTime=0.1;
+      vdo.play();
+      vdo.style.opacity=1;
+    });
+    card.querySelector(".thumb").addEventListener("touchend",e=>{
+      const vdo=e.currentTarget.querySelector("video");
+      vdo.pause();
+      vdo.style.opacity=0;
+    });
+
     grid.appendChild(card);
   });
 }
@@ -138,43 +168,19 @@ function render(list){
 function toggleFav(e,id){
   e.stopPropagation();
   favorites.includes(id)
-    ? favorites = favorites.filter(x=>x!==id)
+    ? favorites=favorites.filter(x=>x!==id)
     : favorites.push(id);
-  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
+  localStorage.setItem("fav_"+user,JSON.stringify(favorites));
   render(videos);
 }
 
-function addHistory(id){
-  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
-  h = h.filter(x=>x!==id);
-  h.unshift(id);
-  localStorage.setItem("history_"+user, JSON.stringify(h));
-}
-
-/* ===== PREVIEW ===== */
-function previewStart(el){
-  if(window.innerWidth<900) return;
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
-  v.currentTime=0.1;
-  v.play();
-  v.style.opacity=1;
-  i.style.opacity=0;
-}
-function previewStop(el){
-  const v=el.querySelector("video");
-  const i=el.querySelector("img");
-  v.pause();
-  v.style.opacity=0;
-  i.style.opacity=1;
-}
-
-/* ===== SEARCH / FILTER ===== */
+/* SEARCH / FILTER */
 function search(q){
   render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
 }
 function filter(c){
   render(videos.filter(v=>v.c===c));
+  document.getElementById("cats").classList.remove("open");
 }
 
 render(videos);
