@@ -14,7 +14,7 @@
     <span>Normand</span><span>X</span>
   </div>
 
-  <input class="search" placeholder="Rechercher..." oninput="search(this.value)">
+  <input class="search" placeholder="Rechercher..." id="search">
 
   <div class="account" onclick="toggleMenu()">
     <img src="account.png">
@@ -28,27 +28,39 @@
 </div>
 
 <div class="layout">
-<aside>
-  <a onclick="filter('Hetero')">Hétéro</a>
-  <a onclick="filter('MILF')">MILF</a>
-  <a onclick="filter('Teen')">Teen</a>
+
+<aside id="categories">
+  <a data-cat="Hetero">Hétéro</a>
+  <a data-cat="MILF">MILF</a>
+  <a data-cat="Teen">Teen</a>
+  <a data-cat="Anal">Anal</a>
+  <a data-cat="Lesbian">Lesbian</a>
+  <a data-cat="Gays">Gays</a>
+  <a data-cat="Amateur">Amateur</a>
+  <a data-cat="Asian">Asian</a>
+  <a data-cat="BBW">BBW</a>
+  <a data-cat="Fetish">Fetish</a>
+  <a data-cat="Hardcore">Hardcore</a>
+  <a data-cat="Compilation">Compilation</a>
 </aside>
 
 <main>
   <div class="grid" id="grid"></div>
 </main>
+
 </div>
 
 <script>
-/* USER */
-let user = localStorage.getItem("connected") || "guest";
+/* ================= USER ================= */
+const user = localStorage.getItem("connected") || "guest";
 localStorage.setItem("connected", user);
 
-/* MENU */
+/* ================= MENU ================= */
 function toggleMenu(){
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display === "block" ? "none" : "block";
 }
-document.addEventListener("click",e=>{
+document.addEventListener("click", e=>{
   if(!e.target.closest(".account")) menu.style.display="none";
 });
 function logout(){
@@ -56,41 +68,42 @@ function logout(){
   location.reload();
 }
 
-/* DATA */
-const videos=[
+/* ================= DATA ================= */
+const videos = [
  {
   id:1,
   t:"Carla Cute 1",
   c:"Hetero",
-  poster:"https://via.placeholder.com/640x360/000000/ffffff?text=Preview",
+  poster:"https://via.placeholder.com/640x360?text=Preview+1",
   v:"https://ia601703.us.archive.org/22/items/video-1_20260114/Video1.mp4",
-  d:"12:34",
-  views:0
+  d:"12:34"
  },
  {
   id:2,
   t:"Ma cousine m'a fait perdre le NNN",
   c:"Hetero",
-  poster:"https://via.placeholder.com/640x360/000000/ffffff?text=Preview",
-  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee-percee-par-filoufitt_360p.mp4",
-  d:"18:05",
-  views:0
+  poster:"https://via.placeholder.com/640x360?text=Preview+2",
+  v:"https://ia601402.us.archive.org/0/items/xnxx-incroyable-blonde-bien-roulee-percee-par-filoufitt-360p/XNXX_incroyable_blonde_bien_roulee_percee_par_filoufitt_360p.mp4",
+  d:"18:05"
  }
 ];
-localStorage.setItem("videos",JSON.stringify(videos));
 
-let favorites=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
-const grid=document.getElementById("grid");
+localStorage.setItem("videos", JSON.stringify(videos));
 
-/* RENDER */
+let favorites = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
+let currentList = [...videos];
+
+const grid = document.getElementById("grid");
+
+/* ================= RENDER ================= */
 function render(list){
-  grid.innerHTML="";
-  list.forEach(v=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.onclick=()=>location.href="video.html?id="+v.id;
+  grid.innerHTML = "";
 
-    card.innerHTML=`
+  list.forEach(v=>{
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
       <div class="thumb">
         <img src="${v.poster}">
         <video muted playsinline preload="metadata">
@@ -99,62 +112,91 @@ function render(list){
         <span class="duration">${v.d}</span>
       </div>
 
+      <div class="fav-row">
+        <button class="fav-btn ${favorites.includes(v.id)?"active":""}">❤</button>
+      </div>
+
       <p>${v.t}</p>
+      <div class="meta">
+        <span>${v.c}</span>
+      </div>
     `;
+
+    /* === NAVIGATION === */
+    card.addEventListener("click", ()=>{
+      addHistory(v.id);
+      location.href = "video.html?id=" + v.id;
+    });
+
+    /* === FAVORI === */
+    card.querySelector(".fav-btn").addEventListener("click", e=>{
+      e.stopPropagation();
+      toggleFav(v.id, e.target);
+    });
+
+    /* === PREVIEW PC + MOBILE === */
+    const thumb = card.querySelector(".thumb");
+    const video = thumb.querySelector("video");
+    const img = thumb.querySelector("img");
+
+    const start = ()=>{
+      video.currentTime = 0.1;
+      video.play();
+      video.style.opacity = 1;
+      img.style.opacity = 0;
+    };
+
+    const stop = ()=>{
+      video.pause();
+      video.style.opacity = 0;
+      img.style.opacity = 1;
+    };
+
+    thumb.addEventListener("mouseenter", start);
+    thumb.addEventListener("mouseleave", stop);
+    thumb.addEventListener("touchstart", start, {passive:true});
+    thumb.addEventListener("touchend", stop);
+
     grid.appendChild(card);
   });
-
-  initPreviews();
 }
 
-/* PREVIEW LOGIC – FIX DÉFINITIF */
-function initPreviews(){
-  document.querySelectorAll(".thumb").forEach(thumb=>{
-    const video=thumb.querySelector("video");
-    const img=thumb.querySelector("img");
+/* ================= FAVORIS ================= */
+function toggleFav(id, btn){
+  if(favorites.includes(id)){
+    favorites = favorites.filter(x=>x!==id);
+    btn.classList.remove("active");
+  }else{
+    favorites.push(id);
+    btn.classList.add("active");
+  }
+  localStorage.setItem("fav_"+user, JSON.stringify(favorites));
+}
 
-    /* PC */
-    thumb.addEventListener("mouseenter",()=>{
-      if(innerWidth<900) return;
-      video.load();
-      video.currentTime=0.05;
-      video.play();
-      video.style.opacity=1;
-      img.style.opacity=0;
-    });
+/* ================= HISTORY ================= */
+function addHistory(id){
+  let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+  h = h.filter(x=>x!==id);
+  h.unshift(id);
+  localStorage.setItem("history_"+user, JSON.stringify(h));
+}
 
-    thumb.addEventListener("mouseleave",()=>{
-      video.pause();
-      video.style.opacity=0;
-      img.style.opacity=1;
-    });
+/* ================= SEARCH ================= */
+document.getElementById("search").addEventListener("input", e=>{
+  const q = e.target.value.toLowerCase();
+  currentList = videos.filter(v=>v.t.toLowerCase().includes(q));
+  render(currentList);
+});
 
-    /* MOBILE */
-    thumb.addEventListener("touchstart",e=>{
-      e.preventDefault();
-      video.load();
-      video.currentTime=0.05;
-      video.play();
-      video.style.opacity=1;
-      img.style.opacity=0;
-    });
-
-    thumb.addEventListener("touchend",()=>{
-      video.pause();
-      video.style.opacity=0;
-      img.style.opacity=1;
-    });
+/* ================= FILTER ================= */
+document.querySelectorAll("#categories a").forEach(a=>{
+  a.addEventListener("click", ()=>{
+    currentList = videos.filter(v=>v.c === a.dataset.cat);
+    render(currentList);
   });
-}
+});
 
-/* SEARCH / FILTER */
-function search(q){
-  render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));
-}
-function filter(c){
-  render(videos.filter(v=>v.c===c));
-}
-
+/* ================= INIT ================= */
 render(videos);
 </script>
 
