@@ -1,33 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NormandX - Accueil</title>
+    <title>NormandX | Accueil</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
     <div class="logo" onclick="location.href='home.html'"><span>Normand</span><span>X</span></div>
-    <input class="search" placeholder="Rechercher une vidéo..." oninput="search(this.value)">
-    <div class="account-container">
-        <div class="account" onclick="toggleMenu()"></div>
-        <div class="menu" id="menu">
-            <a href="account.html">👤 Mon Historique</a>
+    
+    <div class="search-container">
+        <input class="search" placeholder="Rechercher une vidéo..." oninput="search(this.value)">
+    </div>
+
+    <div class="account-area">
+        <div class="account-btn" onclick="toggleMenu()"></div>
+        <div class="menu" id="userMenu">
+            <a href="account.html">📊 Mon Historique</a>
             <a href="favorites.html">❤️ Mes Favoris</a>
-            <hr style="border:0; border-top:1px solid #333">
-            <a onclick="logout()">🚪 Déconnexion</a>
+            <a onclick="logout()" style="color:#ff5f7a">🚪 Déconnexion</a>
         </div>
     </div>
 </header>
 
 <div class="layout">
-    <aside>
-        <a onclick="render(allVideos)">🔥 Nouveautés</a>
-        <a onclick="filter('Hetero')">Hétéro</a>
-        <a onclick="filter('Gays')">Gays</a>
-        <a onclick="filter('MILF')">MILF</a>
+    <aside id="sidebar">
+        <a onclick="render(videos)" class="active">🔥 Nouveautés</a>
+        <a onclick="filter('Hetero')">🎬 Hétéro</a>
+        <a onclick="filter('Gays')">🌈 Gays</a>
+        <a onclick="filter('MILF')">👩 MILF</a>
     </aside>
 
     <main>
@@ -36,77 +39,90 @@
 </div>
 
 <script>
+// 1. DATA (Remplace les liens .jpg et .mp4 par tes vrais fichiers)
+const videos = [
+    {id:1, t:"Ma Première Vidéo", c:"Hetero", i:"thumbs/1.jpg", v:"videos/1.mp4"},
+    {id:2, t:"Spécial MILF intense", c:"MILF", i:"thumbs/2.jpg", v:"videos/2.mp4"},
+    {id:3, t:"Contenu Gays Premium", c:"Gays", i:"thumbs/3.jpg", v:"videos/3.mp4"}
+];
+
 const user = localStorage.getItem("connected");
 if(!user) location.href="auth.html";
 
-// Base de données simulée (Assure-toi que les chemins images/vidéos sont bons)
-const allVideos = [
-    {id:1, t:"Première Vidéo", c:"Hetero", i:"https://via.placeholder.com/300x170", v:"#"},
-    {id:2, t:"Spécial MILF", c:"MILF", i:"https://via.placeholder.com/300x170", v:"#"},
-    {id:3, t:"Contenu Gay", c:"Gays", i:"https://via.placeholder.com/300x170", v:"#"}
-];
-// On sauvegarde pour les autres pages
-localStorage.setItem("videos", JSON.stringify(allVideos));
+// Sauvegarde globale pour les autres pages
+localStorage.setItem("videos", JSON.stringify(videos));
 
-function toggleMenu(){ document.getElementById('menu').classList.toggle('show'); }
-function logout(){ localStorage.removeItem("connected"); location.href="auth.html"; }
+// 2. FONCTIONS INTERFACE
+function toggleMenu(){ document.getElementById('userMenu').classList.toggle('show'); }
 
-function render(list){
+function render(data){
     const grid = document.getElementById("videoGrid");
     grid.innerHTML = "";
+    
     const likes = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
     const favs = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
 
-    list.forEach(v => {
+    data.forEach(vid => {
         grid.innerHTML += `
         <div class="card">
-            <img src="${v.i}" onclick="openVideo(${v.id})">
-            <p>${v.t}</p>
-            <div class="actions">
-                <button class="like ${likes.includes(v.id)?'active':''}" onclick="handleAction('likes', ${v.id}, this)">👍</button>
-                <button class="fav ${favs.includes(v.id)?'active':''}" onclick="handleAction('fav', ${v.id}, this)">❤</button>
+            <div class="thumb-container" onclick="goToVideo(${vid.id})">
+                <img src="${vid.i}" onerror="this.src='https://via.placeholder.com/300x170?text=No+Image'">
+                <video src="${vid.v}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+            </div>
+            <div class="card-info">
+                <p>${vid.t}</p>
+                <div class="actions">
+                    <button class="btn-action ${likes.includes(vid.id)?'active':''}" onclick="handleSocial('likes',${vid.id},this)">👍</button>
+                    <button class="btn-action ${favs.includes(vid.id)?'active':''}" onclick="handleSocial('fav',${vid.id},this)">❤️</button>
+                </div>
             </div>
         </div>`;
     });
 }
 
-function handleAction(type, id, btn){
-    let data = JSON.parse(localStorage.getItem(type + "_" + user) || "[]");
-    if(data.includes(id)){
-        data = data.filter(x => x !== id);
+// 3. LOGIQUE
+function handleSocial(type, id, btn){
+    let storage = JSON.parse(localStorage.getItem(type+"_"+user) || "[]");
+    if(storage.includes(id)){
+        storage = storage.filter(x => x !== id);
         btn.classList.remove("active");
     } else {
-        data.push(id);
+        storage.push(id);
         btn.classList.add("active");
     }
-    localStorage.setItem(type + "_" + user, JSON.stringify(data));
+    localStorage.setItem(type+"_"+user, JSON.stringify(storage));
 }
 
-function search(q){
-    const filtered = allVideos.filter(v => v.t.toLowerCase().includes(q.toLowerCase()));
+function filter(cat){
+    const filtered = videos.filter(v => v.c === cat);
     render(filtered);
 }
 
-function filter(c){
-    const filtered = allVideos.filter(v => v.c === c);
+function search(val){
+    const filtered = videos.filter(v => v.t.toLowerCase().includes(val.toLowerCase()));
     render(filtered);
 }
 
-function openVideo(id){
-    let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
-    h = [id, ...h.filter(x => x !== id)]; // Ajoute au début et enlève les doublons
-    localStorage.setItem("history_"+user, JSON.stringify(h.slice(0,20))); // Max 20 items
+function goToVideo(id){
+    // Ajout historique
+    let hist = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+    hist = [id, ...hist.filter(x => x !== id)].slice(0,20);
+    localStorage.setItem("history_"+user, JSON.stringify(hist));
+    
     location.href = "video.html?id=" + id;
 }
 
-// Initialisation
-render(allVideos);
+function logout(){
+    localStorage.removeItem("connected");
+    location.href = "auth.html";
+}
 
-// Fermer le menu si on clique ailleurs
-window.onclick = function(event) {
-  if (!event.target.matches('.account')) {
-    document.getElementById('menu').classList.remove('show');
-  }
+// Lancement
+render(videos);
+
+// Fermer menu si clic ailleurs
+window.onclick = e => {
+    if(!e.target.classList.contains('account-btn')) document.getElementById('userMenu').classList.remove('show');
 }
 </script>
 </body>
