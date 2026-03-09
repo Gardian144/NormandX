@@ -1,91 +1,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>NormandX</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NormandX - Accueil</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-  <div class="logo" onclick="location.href='home.html'"><span>Normand</span><span>X</span></div>
-  <input class="search" placeholder="Rechercher..." oninput="search(this.value)">
-  <div class="account">
-    <img src="account.png" onclick="toggleMenu()">
-  </div>
+    <div class="logo" onclick="location.href='home.html'"><span>Normand</span><span>X</span></div>
+    <input class="search" placeholder="Rechercher une vidéo..." oninput="search(this.value)">
+    <div class="account-container">
+        <div class="account" onclick="toggleMenu()"></div>
+        <div class="menu" id="menu">
+            <a href="account.html">👤 Mon Historique</a>
+            <a href="favorites.html">❤️ Mes Favoris</a>
+            <hr style="border:0; border-top:1px solid #333">
+            <a onclick="logout()">🚪 Déconnexion</a>
+        </div>
+    </div>
 </header>
 
-<div class="menu" id="menu">
-  <a href="account.html">Compte</a>
-  <a href="favorites.html">Favoris</a>
-  <a onclick="logout()">Déconnexion</a>
-</div>
-
 <div class="layout">
-<aside>
-  <a onclick="filter('Hetero')">Hétéro</a>
-  <a onclick="filter('Gays')">Gays</a>
-  <a onclick="filter('MILF')">MILF</a>
-</aside>
+    <aside>
+        <a onclick="render(allVideos)">🔥 Nouveautés</a>
+        <a onclick="filter('Hetero')">Hétéro</a>
+        <a onclick="filter('Gays')">Gays</a>
+        <a onclick="filter('MILF')">MILF</a>
+    </aside>
 
-<main>
-  <div class="grid" id="grid"></div>
-</main>
+    <main>
+        <div class="grid" id="videoGrid"></div>
+    </main>
 </div>
 
 <script>
-const user=localStorage.getItem("connected");
+const user = localStorage.getItem("connected");
 if(!user) location.href="auth.html";
 
-function toggleMenu(){menu.style.display=menu.style.display==="block"?"none":"block";}
-function logout(){localStorage.removeItem("connected");location.href="auth.html";}
-
-const videos=[
- {id:1,t:"Vidéo 1",c:"Hetero",i:"thumbs/1.jpg",v:"videos/1.mp4"},
- {id:2,t:"Vidéo 2",c:"MILF",i:"thumbs/2.jpg",v:"videos/2.mp4"}
+// Base de données simulée (Assure-toi que les chemins images/vidéos sont bons)
+const allVideos = [
+    {id:1, t:"Première Vidéo", c:"Hetero", i:"https://via.placeholder.com/300x170", v:"#"},
+    {id:2, t:"Spécial MILF", c:"MILF", i:"https://via.placeholder.com/300x170", v:"#"},
+    {id:3, t:"Contenu Gay", c:"Gays", i:"https://via.placeholder.com/300x170", v:"#"}
 ];
-localStorage.setItem("videos",JSON.stringify(videos));
+// On sauvegarde pour les autres pages
+localStorage.setItem("videos", JSON.stringify(allVideos));
+
+function toggleMenu(){ document.getElementById('menu').classList.toggle('show'); }
+function logout(){ localStorage.removeItem("connected"); location.href="auth.html"; }
 
 function render(list){
- grid.innerHTML="";
- const likes=JSON.parse(localStorage.getItem("likes_"+user)||"[]");
- const favs=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
- list.forEach(v=>{
-  grid.innerHTML+=`
-  <div class="card">
-    <img src="${v.i}" onclick="openVideo(${v.id})">
-    <p>${v.t}</p>
-    <div class="actions">
-      <button class="like ${likes.includes(v.id)?'active':''}" onclick="like(${v.id},this)">👍</button>
-      <button class="fav ${favs.includes(v.id)?'active':''}" onclick="fav(${v.id},this)">❤</button>
-    </div>
-  </div>`;
- });
-}
-render(videos);
+    const grid = document.getElementById("videoGrid");
+    grid.innerHTML = "";
+    const likes = JSON.parse(localStorage.getItem("likes_"+user) || "[]");
+    const favs = JSON.parse(localStorage.getItem("fav_"+user) || "[]");
 
-function search(q){render(videos.filter(v=>v.t.toLowerCase().includes(q.toLowerCase())));}
-function filter(c){render(videos.filter(v=>v.c===c));}
+    list.forEach(v => {
+        grid.innerHTML += `
+        <div class="card">
+            <img src="${v.i}" onclick="openVideo(${v.id})">
+            <p>${v.t}</p>
+            <div class="actions">
+                <button class="like ${likes.includes(v.id)?'active':''}" onclick="handleAction('likes', ${v.id}, this)">👍</button>
+                <button class="fav ${favs.includes(v.id)?'active':''}" onclick="handleAction('fav', ${v.id}, this)">❤</button>
+            </div>
+        </div>`;
+    });
+}
+
+function handleAction(type, id, btn){
+    let data = JSON.parse(localStorage.getItem(type + "_" + user) || "[]");
+    if(data.includes(id)){
+        data = data.filter(x => x !== id);
+        btn.classList.remove("active");
+    } else {
+        data.push(id);
+        btn.classList.add("active");
+    }
+    localStorage.setItem(type + "_" + user, JSON.stringify(data));
+}
+
+function search(q){
+    const filtered = allVideos.filter(v => v.t.toLowerCase().includes(q.toLowerCase()));
+    render(filtered);
+}
+
+function filter(c){
+    const filtered = allVideos.filter(v => v.c === c);
+    render(filtered);
+}
 
 function openVideo(id){
- let h=JSON.parse(localStorage.getItem("history_"+user)||"[]");
- h.unshift(id);h=[...new Set(h)];
- localStorage.setItem("history_"+user,JSON.stringify(h));
- location.href="video.html?id="+id;
+    let h = JSON.parse(localStorage.getItem("history_"+user) || "[]");
+    h = [id, ...h.filter(x => x !== id)]; // Ajoute au début et enlève les doublons
+    localStorage.setItem("history_"+user, JSON.stringify(h.slice(0,20))); // Max 20 items
+    location.href = "video.html?id=" + id;
 }
 
-function like(id,btn){
- let l=JSON.parse(localStorage.getItem("likes_"+user)||"[]");
- if(l.includes(id)){l=l.filter(x=>x!==id);btn.classList.remove("active");}
- else{l.push(id);btn.classList.add("active");}
- localStorage.setItem("likes_"+user,JSON.stringify(l));
-}
+// Initialisation
+render(allVideos);
 
-function fav(id,btn){
- let f=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
- if(f.includes(id)){f=f.filter(x=>x!==id);btn.classList.remove("active");}
- else{f.push(id);btn.classList.add("active");}
- localStorage.setItem("fav_"+user,JSON.stringify(f));
+// Fermer le menu si on clique ailleurs
+window.onclick = function(event) {
+  if (!event.target.matches('.account')) {
+    document.getElementById('menu').classList.remove('show');
+  }
 }
 </script>
 </body>
