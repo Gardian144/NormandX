@@ -1,54 +1,54 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Favoris</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Favoris | NormandX</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-  <div class="logo" onclick="location.href='home.html'">
-    <span>Normand</span><span>X</span>
-  </div>
+    <div class="logo" onclick="location.href='home.html'"><span>Normand</span><span>X</span></div>
+    <div class="back" onclick="location.href='home.html'" style="margin:0">← Retour</div>
 </header>
 
 <main>
-  <div class="back" onclick="history.back()">← Retour</div>
-  <h2>Mes favoris</h2>
-  <div class="grid" id="grid"></div>
+    <h2 style="border-bottom: 2px solid #ffb400; padding-bottom: 10px; display: inline-block;">❤️ Mes Favoris</h2>
+    <div class="grid" id="favGrid"></div>
 </main>
 
 <script>
-const user=localStorage.getItem("connected");
-const favs=JSON.parse(localStorage.getItem("fav_"+user)||"[]");
-const videos=JSON.parse(localStorage.getItem("allVideos"));
-const grid=document.getElementById("grid");
+const user = localStorage.getItem("connected");
+const allVideos = JSON.parse(localStorage.getItem("videos") || "[]");
+const favIds = JSON.parse(localStorage.getItem("fav_" + user) || "[]");
 
-<header>
-  <div class="logo" onclick="location.href='home.html'">
-    <span>Normand</span><span>X</span>
-  </div>
+function renderFavs() {
+    const grid = document.getElementById("favGrid");
+    // On filtre les vidéos dont l'ID est présent dans nos favoris
+    const favoriteVideos = allVideos.filter(v => favIds.includes(v.id));
 
-  <input class="search" placeholder="Rechercher..." oninput="search(this.value)">
+    if (favoriteVideos.length === 0) {
+        grid.innerHTML = "<p style='color:#666'>Vous n'avez pas encore de favoris.</p>";
+        return;
+    }
 
-  <div class="account">
-    <img src="account.png" class="avatar" onclick="toggleMenu()">
-    <div class="menu" id="menu">
-      <a href="favorites.html">❤️ Favoris</a>
-      <a onclick="logout()">🚪 Déconnexion</a>
-    </div>
-  </div>
-</header>
+    grid.innerHTML = "";
+    favoriteVideos.forEach(v => {
+        grid.innerHTML += `
+        <div class="card">
+            <div class="thumb-container" onclick="location.href='video.html?id=${v.id}'">
+                <img src="${v.i}" onerror="this.src='https://via.placeholder.com/300x170?text=No+Image'">
+                <video src="${v.v}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+            </div>
+            <div class="card-info">
+                <p>${v.t}</p>
+            </div>
+        </div>`;
+    });
+}
 
-videos.filter(v=>favs.includes(v.id)).forEach(v=>{
-  grid.innerHTML+=`
-  <div class="card">
-    <img src="${v.i}" onclick="location.href='video.html?id=${v.id}'">
-    <p>${v.t}</p>
-  </div>`;
-});
+renderFavs();
 </script>
-
 </body>
 </html>
